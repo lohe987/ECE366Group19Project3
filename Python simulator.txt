@@ -1,0 +1,181 @@
+import binascii # To convert string to binary format.
+file=open("Project_3_input_file_pycharm_codes.txt","r")
+register_val=[0,0,0,0,0,0,0,0]# register i is at index i
+# When we set an active register i, we manipulate the value of register i.
+active_register=0 # randomly initializing active_register assuming active register is R0.
+length=0 # initializing length
+current_line=0 # To know current line number being iterated.
+
+for line in file: # Calculating number of lines in the file to calculate the number of bytes in every line. This will be used to jump file pointer to a particular line for Branch statement.
+    length=length+1
+
+byte_length=[None]*length #Declaring list that stores number of bytes to jump to reach a particular line. This will be used for the branch(B) instruction.
+
+for i in range(length): # initializing byte_length array.
+    byte_length[i]=0
+
+file.seek(0) # Going back to beginning of file.
+i=0 # Line counter.
+byte_length[0]=0 #We don't need to jump to any length to get to the first line.
+for line in file:
+    if i<=length-2:
+        byte_length[i + 1] = byte_length[i] + len(line)+1
+        i=i+1
+    else:
+        break
+
+for i in range(length):
+    print("byte_length[%d]= %d"%(i,byte_length[i]))
+
+file.seek(0) # To reach the beginning of file again.
+
+for line in file:
+    if (line[1]+line[2]+line[3]+line[4] == '1110'):
+        print("Entered B loop")
+        current_instruction="B"
+        print("Current Instruction: ", current_instruction)
+        print("Current_address: ", current_line + 1)
+        print("Branching to line: ",register_val[7] )
+        file.seek(byte_length[register_val[7]],0)
+        #print("current instruction after B jump is: ",file.readline())
+        current_line= register_val[7]
+
+    elif (line[1]+line[2]+line[3]+line[4]=='0000'):
+        print("Entered SAR loop")
+        current_instruction="SAR"
+        active_register=(int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        print("Active regiser: ",active_register)
+        print("Current Instruction: ",current_instruction+' '+str(active_register))
+        print("Current_address: ",current_line+1)
+        print("Setting active register to R%d"%active_register)
+        current_line += 1
+
+    elif (line[1]+line[2]+line[3]+line[4]=='0001'):
+        print("Entered ADD loop")
+        current_instruction = "ADD"
+        add_value= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        print("Add value: %d"%add_value)
+        register_val[active_register]+=add_value
+        print("Current Instruction: ", current_instruction +' '+ str(add_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='1000'):
+        print("Entered SUB loop")
+        current_instruction = "SUB"
+        sub_value= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register] -= sub_value
+        print("Current Instruction: ", current_instruction + ' ' + str(sub_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif (line[1]+line[2]+line[3]+line[4]=='1001'):
+        print("Entered MLT loop")
+        current_instruction = "MLT"
+        mlt_value= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register]*=mlt_value
+        print("Current Instruction: ", current_instruction +' '+ str(mlt_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='1100'):
+        print("Entered ADDI loop")
+        current_instruction = "ADDI"
+        addi_value= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register]+=addi_value
+        print("Current Instruction: ", current_instruction +' '+ str(addi_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='0010'):
+        print("Entered MOV loop")
+        current_instruction = "MOV"
+        mov_value=register_val[(int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)]
+        register_val[active_register]=mov_value
+        print("Current Instruction: ", current_instruction +' '+ str(mov_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='1011'):
+        print("Entered MOVI loop")
+        current_instruction = "MOVI"
+        movi_value= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register]=movi_value
+        print("Current Instruction: ", current_instruction +' '+ str(movi_value))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='0100'):
+        print("Entered SLL loop")
+        current_instruction = "SLL"
+        sll_val= pow(2,(int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1))
+        print("sll_val= ",sll_val )
+        register_val[active_register]*=sll_val
+        print("Current Instruction: ", current_instruction +' '+ str(sll_val))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='0101'):
+        print("Entered SRL loop")
+        current_instruction = "SRL"
+        srl_val= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register]/=pow(2,srl_val)
+        print("Current Instruction: ", current_instruction +' '+ str(srl_val))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='0011'):
+        print("Entered AND loop")
+        current_instruction="AND"
+        and_val= (int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        register_val[active_register]=register_val[active_register] and and_val
+        print("Current Instruction: ", current_instruction +' '+ str(and_val))
+        print("Current_address: ", current_line + 1)
+        print("R%d= %d"%(active_register,register_val[active_register]))
+        current_line += 1
+
+    elif(line[1]+line[2]+line[3]+line[4]=='1010'):
+        print("Entered BSLT loop")
+        current_instruction="BSLT"
+        bslt_register=(int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)
+        if(register_val[active_register]<register_val[bslt_register]):
+            print("ra<rs")
+            print("Branching to line:",register_val[7])
+            file.seek(byte_length[register_val[7]-1], 0) #Branch to current value of PC(current_line)
+            print("Current address:",current_line)
+            current_line=register_val[7]
+        else:
+            print("Not Branching")
+            current_line+=1
+    elif(line[1]+line[2]+line[3]+line[4]=='0111'):
+        print("Entered STOR loop")
+        current_instruction="STOR"
+        storing_address=register_val[(int(line[5])*4)+(int(line[6])*2)+(int(line[7])*1)] #Because first line is actually line 0 so we subtract one.
+        print("Storing address= ",storing_address)
+        store_value=register_val[active_register]
+        with open("Project_3_output_file_pycharm_codes.txt",'r+') as file_out:
+            output_line =0  # current line number of output file.
+            for line in file_out:
+                if(output_line==storing_address):
+                    file_out.write(str(register_val[active_register]))
+                    break
+                else:
+                    output_line+=1
+        print("STOR finished")
+        output_line=0 #re-initializing output_line for next STOR opeartion.
+        file_out.close()
+
+
+print("register values:")
+for i in range(8):
+    print("R%d= %d"%(i,register_val[i]))
+
+file.close()
